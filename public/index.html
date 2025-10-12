@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Realtime Lobby — Home</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <h1>Realtime Lobby</h1>
+
+  <div class="box">
+    <label>Twoja nazwa:</label>
+    <input id="nameInput" placeholder="np. Jan" />
+  </div>
+
+  <div class="buttons">
+    <button id="createBtn">Utwórz lobby</button><br><br>
+    <input id="joinId" placeholder="Kod lobby" />
+    <button id="joinBtn">Dołącz</button>
+  </div>
+
+  <p class="note">Po utworzeniu lobby zostaniesz przekierowany(-a) do strony lobby. Udostępnij link znajomym.</p>
+</main>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+const nameInput = document.getElementById('nameInput');
+const createBtn = document.getElementById('createBtn');
+const joinBtn = document.getElementById('joinBtn');
+const joinId = document.getElementById('joinId');
+
+createBtn.addEventListener('click', () => {
+  const name = nameInput.value.trim() || 'Anon';
+  socket.emit('createLobby', (res) => {
+    if (res && res.lobbyId) {
+      window.location.href = `/lobby.html?lobby=${res.lobbyId}&name=${encodeURIComponent(name)}`;
+    }
+  });
+});
+
+joinBtn.addEventListener('click', () => {
+  const id = joinId.value.trim();
+  const name = nameInput.value.trim() || 'Anon';
+  if (!id) return alert('Wpisz kod lobby');
+  window.location.href = `/lobby.html?lobby=${encodeURIComponent(id)}&name=${encodeURIComponent(name)}`;
+});
+</script>
+</body>
+</html>

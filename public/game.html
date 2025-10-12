@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Impostor - Gra</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>Impostor - Gra</h1>
+<div id="gameArea"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const lobbyId = params.get('lobby');
+const name = params.get('name');
+
+const gameArea = document.getElementById('gameArea');
+const socket = io();
+
+// Dołącz do gry i odbierz indywidualne dane
+socket.emit('joinGame', { lobbyId, name });
+
+socket.on('gameData', (data) => {
+  gameArea.innerHTML = `
+    <h2>Twoja rola:</h2>
+    <p style="font-size:1.5em; ${data.isImpostor?'color:red;':''}">
+      ${data.isImpostor ? 'IMPOSTOR' : 'Gracz'}
+    </p>
+    <p><strong>Kategoria:</strong> ${data.categoryName}</p>
+    ${data.isImpostor ? '<p style="font-weight:bold; color:red;">Nie znasz hasła</p>' 
+                       : `<p><strong>Hasło:</strong> ${data.word}</p>`}
+  `;
+});
+</script>
+</body>
+</html>

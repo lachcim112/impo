@@ -1,0 +1,91 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f0f2f5;
+  color: #333;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+}
+
+main {
+  background: #fff;
+  margin: 40px 0;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  width: 90%;
+  max-width: 500px;
+}
+
+h1, h2 {
+  text-align: center;
+  color: #4caf50;
+}
+
+.box {
+  background: #e8f5e9;
+  padding: 20px;
+  border-radius: 12px;
+  margin: 15px 0;
+  text-align: center;
+}
+
+input[type=text], input[type=password], select {
+  width: calc(100% - 20px);
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  margin: 5px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.2s;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  background: #c8e6c9;
+  margin: 5px 0;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+#gameArea {
+  text-align: center;
+}
+
+#gameArea p {
+  font-size: 18px;
+  margin: 10px 0;
+}
+
+.selected {
+  background-color: #81c784 !important;
+}
+
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+}

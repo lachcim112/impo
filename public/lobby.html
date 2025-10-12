@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Lobby</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+<h1>Lobby</h1>
+<div id="lobbyInfo" class="box"></div>
+
+<h2>Gracze</h2>
+<ul id="playersList"></ul>
+
+<div class="box">
+  <label>Wybierz kategorię:</label>
+  <select id="categorySelect"></select>
+</div>
+
+<div class="buttons">
+  <button id="startBtn">Start gry</button>
+  <button id="leaveBtn">Opuść lobby</button>
+</div>
+</main>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const lobbyId = params.get('lobby');
+const name = params.get('name') || 'Anon';
+if (!lobbyId) { alert('Brak ID lobby'); location.href = '/'; }
+
+const socket = io();
+const lobbyInfo = document.getElementById('lobbyInfo');
+const playersList = document.getElementById('playersList');
+const leaveBtn = document.getElementById('leaveBtn');
+const startBtn = document.getElementById('startBtn');
+const categorySelect = document.getElementById('categorySelect');
+
+const categories = [
+  "Zwierzęta","Miasta","Gry komputerowe","Jedzenie","Filmy","Zawody","Sporty",
+  "Państwa","Rzeczy codzienne","Postacie fikcyjne","Części ciała","Pojazdy",
+  "Rośliny","Zabawki","Instrumenty","Święta","Marki","Zjawiska pogodowe","Meble"
+];
+
+categories.forEach(c => {
+  const opt = document.createElement('option');
+  opt.value = c;
+  opt.textContent = c;
+  categorySelect.appendChild(opt);
+});
+
+lobbyInfo.innerText = `Lobby: ${lobbyId} — Twoja nazwa: ${name}`;
+
+socket.emit('joinLobby', { lobbyId, name }, (res) => {
+  if (res && res.error) { alert(res.error); location.href='/'; }
+});
+
+socket.on('players', (players) => {
+  playersList.innerHTML = '';
+  players.forEach(p => {
+    const li = document.createElement('li');
+    li.textContent = p.name;
+    playersList.appendChild(li);
+  });
+});
+
+startBtn.addEventListener('click', () => {
+  const players = Array.from(playersList.children).map(li => li.textContent);
+  if (players.length < 3) { alert('Potrzebnych jest co najmniej 3 graczy'); return; }
+  const category = categorySelect.value;
+  // uproszczone słowa – można rozszerzyć według kategorii
+  const words = ["słoń","kot","pies","Warszawa","Minecraft","Pizza"];
+  socket.emit('startGame', { lobbyId, category, words });
+});
+
+leaveBtn.addEventListener('click', () => {
+  socket.emit('leaveLobby', { lobbyId }, () => location.href='/');
+});
+
+window.addEventListener('beforeunload', () => {
+  socket.emit('leaveLobby', { lobbyId });
+});
+
+// Przekierowanie do game.html
+socket.on('gameStarted', () => {
+  const url = `/game.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
+  window.location.href = url;
+});
+</script>
+</body>
+</html>
