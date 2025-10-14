@@ -55,27 +55,51 @@ io.on('connection', (socket) => {
     io.to(lobbyId).emit('gameStarted');
   });
 
-  // Dołączanie do gry
+  // ... (wcześniejsze części server.js bez zmian)
+
+  // Dołączanie do gry i otrzymywanie indywidualnych danych
   socket.on('joinGame', ({ lobbyId, name }) => {
     const lobby = lobbies[lobbyId];
-    if (!lobby || !lobby.gameData) return;
-    const playerIndex = lobby.gameData.players.findIndex((p) => p === name);
-    if (playerIndex === -1) return;
+    if (!lobby || !lobby.gameData) {
+      console.log(`joinGame: brak lobby/gameData dla ${lobbyId}`);
+      return;
+    }
+
+    // Upewnij się, że socket jest w pokoju lobby (na wypadek odświeżenia strony)
+    socket.join(lobbyId);
+
+    const playerIndex = lobby.gameData.players.findIndex(p => p === name);
+    if (playerIndex === -1) {
+      console.log(`joinGame: nie znaleziono gracza ${name} w lobby ${lobbyId}`);
+      return;
+    }
 
     const isImpostor = playerIndex === lobby.gameData.impostorIndex;
+
+    console.log(`joinGame: ${name} (socket ${socket.id}) dołączył do gry w ${lobbyId}, isImpostor=${isImpostor}`);
+
     socket.emit('gameData', {
+      players: lobby.gameData.players,
       categoryName: lobby.gameData.categoryName,
       word: lobby.gameData.word,
       isImpostor
     });
   });
 
-  // ✅ Kliknięcie "Przejdź dalej" — działa jak start gry
+  // Kliknięcie "Przejdź dalej" — natychmiast dla wszystkich
   socket.on('readyNext', ({ lobbyId }) => {
-    if (!lobbies[lobbyId]) return;
-    console.log(`Przycisk "Przejdź dalej" kliknięty w lobby ${lobbyId}`);
-    io.to(lobbyId).emit('allReadyNext'); // wysyła do wszystkich
+    console.log(`readyNext received from socket ${socket.id} for lobby ${lobbyId}`);
+    const lobby = lobbies[lobbyId];
+    if (!lobby) {
+      console.log(`readyNext: lobby ${lobbyId} nie istnieje`);
+      return;
+    }
+    // Wyślij do wszystkich w pokoju sygnał przejścia
+    io.to(lobbyId).emit('allReadyNext');
+    console.log(`allReadyNext emitted to lobby ${lobbyId}`);
   });
+
+
 
   socket.on('disconnect', () => {
     Object.keys(lobbies).forEach((lobbyId) => {

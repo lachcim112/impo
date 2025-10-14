@@ -12,6 +12,7 @@
 
 <div id="readySection" style="text-align:center; margin-top:30px; display:none;">
   <button id="readyBtn">Przejdź dalej</button>
+  <p id="readyInfo"></p>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -23,13 +24,24 @@ const name = params.get('name');
 const gameArea = document.getElementById('gameArea');
 const readySection = document.getElementById('readySection');
 const readyBtn = document.getElementById('readyBtn');
+const readyInfo = document.getElementById('readyInfo');
 
 const socket = io();
 
-// Dołącz do gry i odbierz dane
-socket.emit('joinGame', { lobbyId, name });
+// debug: połączenie socket
+socket.on('connect', () => {
+  console.log('Socket connected, id =', socket.id);
+  // wyślij joinGame żeby serwer dołączył socket do pokoju jeśli trzeba
+  socket.emit('joinGame', { lobbyId, name });
+});
 
+socket.on('connect_error', (err) => {
+  console.error('connect_error', err);
+});
+
+// jeśli serwer wysyła gameData (start gry)
 socket.on('gameData', (data) => {
+  console.log('gameData otrzymane:', data);
   gameArea.innerHTML = `
     <h2>Twoja rola:</h2>
     <p style="font-size:1.5em; ${data.isImpostor ? 'color:red;' : ''}">
@@ -43,15 +55,32 @@ socket.on('gameData', (data) => {
   readySection.style.display = 'block';
 });
 
-// Kliknięcie "Przejdź dalej" — od razu przechodzi dla wszystkich
-readyBtn.addEventListener('click', () => {
-  socket.emit('readyNext', { lobbyId });
+// Przy starcie gry (jeśli używasz eventu gameStarted do wysłania danych)
+socket.on('gameStarted', (maybeData) => {
+  console.log('gameStarted event otrzymany', maybeData);
+  // jeśli server emituje gameStarted ogólnie, teraz poprosimy o swoje dane
+  socket.emit('joinGame', { lobbyId, name });
 });
 
-// Odbiór informacji o przejściu dalej
+// Kliknięcie przycisku
+readyBtn.addEventListener('click', () => {
+  console.log('Kliknięto Przejdź dalej — emit readyNext', { lobbyId });
+  socket.emit('readyNext', { lobbyId });
+  readyBtn.disabled = true;
+  readyInfo.textContent = 'Wysłano... czekam na serwer';
+});
+
+// Odbiór eventu od serwera — wszyscy przechodzą dalej
 socket.on('allReadyNext', () => {
+  console.log('Otrzymano allReadyNext — przechodzę do order.html');
   window.location.href = `/order.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
 });
+
+// dodatkowy fallback (tylko do debugowania):
+// jeśli nic nie przyjdzie po 5s — pokaż to w konsoli
+setTimeout(() => {
+  console.log('DEBUG: po 5s od załadowania strony - socket.connected=', socket.connected);
+}, 5000);
 </script>
 </body>
 </html>
