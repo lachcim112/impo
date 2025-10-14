@@ -8,7 +8,6 @@
 </head>
 <body>
 <h1>Impostor - Gra</h1>
-
 <div id="gameArea"></div>
 
 <div id="readySection" style="text-align:center; margin-top:30px; display:none;">
@@ -27,7 +26,7 @@ const readyBtn = document.getElementById('readyBtn');
 
 const socket = io();
 
-// Dołącz do gry i odbierz dane indywidualne
+// Dołącz do gry i odbierz dane
 socket.emit('joinGame', { lobbyId, name });
 
 socket.on('gameData', (data) => {
@@ -44,14 +43,13 @@ socket.on('gameData', (data) => {
   readySection.style.display = 'block';
 });
 
-// Kliknięcie przycisku działa natychmiast
+// Kliknięcie "Przejdź dalej" — od razu przechodzi dla wszystkich
 readyBtn.addEventListener('click', () => {
-  // Powiadom serwer, żeby wszyscy gracze przeszli do order.html
-  socket.emit('proceedToOrder', { lobbyId });
+  socket.emit('readyNext', { lobbyId });
 });
 
-// Odbiór eventu z serwera – wszyscy przechodzą do order.html
-socket.on('goToOrder', () => {
+// Odbiór informacji o przejściu dalej
+socket.on('allReadyNext', () => {
   window.location.href = `/order.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
 });
 </script>
