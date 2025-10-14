@@ -118,18 +118,13 @@ socket.on('getPlayerOrder', ({ lobbyId }) => {
   io.to(lobbyId).emit('playerOrder', lobby.gameData.playerOrder);
 });
 
-// Każdy gracz może kliknąć "Koniec rundy" w order.html
+// Każdy gracz kliknął "Koniec rundy" — wszyscy przechodzą do roundend.html
 socket.on('readyNextOrder', ({ lobbyId }) => {
-  console.log(`readyNextOrder received from socket ${socket.id} for lobby ${lobbyId}`);
   const lobby = lobbies[lobbyId];
-  if (!lobby) {
-    console.log(`readyNextOrder: lobby ${lobbyId} nie istnieje`);
-    return;
-  }
-  // Wyślij do wszystkich w pokoju sygnał przejścia
+  if (!lobby) return;
   io.to(lobbyId).emit('allReadyNextOrder');
-  console.log(`allReadyNextOrder emitted to lobby ${lobbyId}`);
 });
+
 
   socket.on('disconnect', () => {
     Object.keys(lobbies).forEach((lobbyId) => {

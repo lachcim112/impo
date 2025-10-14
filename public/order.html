@@ -11,8 +11,9 @@
 
 <div id="orderArea" style="text-align:center; margin-top:20px;"></div>
 
-<div style="text-align:center; margin-top:20px;">
+<div id="readySection" style="text-align:center; margin-top:30px;">
   <button id="endRoundBtn">Koniec rundy</button>
+  <p id="readyInfo"></p>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -22,17 +23,25 @@ const lobbyId = params.get('lobby');
 const name = params.get('name');
 
 const orderArea = document.getElementById('orderArea');
+const readySection = document.getElementById('readySection');
 const endRoundBtn = document.getElementById('endRoundBtn');
 const readyInfo = document.getElementById('readyInfo');
 
 const socket = io();
 
 // Poproś serwer o kolejność graczy
-socket.emit('getPlayerOrder', { lobbyId });
+socket.emit('joinGame', { lobbyId, name });
 
-// Odbiór kolejności i wyświetlenie
-socket.on('playerOrder', (order) => {
-  orderArea.innerHTML = '<ol>' + order.map(p => `<li>${p}</li>`).join('') + '</ol>';
+socket.on('gameData', (data) => {
+  // Losowa kolejność graczy
+  const players = data.players.slice();
+  for (let i = players.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [players[i], players[j]] = [players[j], players[i]];
+  }
+
+  orderArea.innerHTML = '<ol>' + players.map(p => `<li>${p}</li>`).join('') + '</ol>';
+  readySection.style.display = 'block';
 });
 
 // Kliknięcie przycisku
@@ -43,7 +52,7 @@ endRoundBtn.addEventListener('click', () => {
   readyInfo.textContent = 'Wysłano... czekam na serwer';
 });
 
-// Odbiór eventu od serwera — wszyscy przechodzą dalej
+// Odbiór eventu od serwera — wszyscy przechodzą do roundend.html
 socket.on('allReadyNextOrder', () => {
   console.log('Otrzymano allReadyNextOrder — przechodzę do roundend.html');
   window.location.href = `/roundend.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
