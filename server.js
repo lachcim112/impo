@@ -225,6 +225,14 @@ socket.on('voteImpostor', ({ lobbyId, target }) => {
     lobby.gameData.votes = {};
   }
 });
+
+socket.on('nextStep', ({ lobbyId }) => {
+  const lobby = lobbies[lobbyId];
+  if (!lobby) return;
+  // Wysyłamy do wszystkich w lobby sygnał do przejścia dalej
+  io.to(lobbyId).emit('goToOrder');
+});
+
 });
 
 server.listen(PORT, '0.0.0.0', () => console.log(`Serwer działa na porcie ${PORT}`));

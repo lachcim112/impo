@@ -44,8 +44,15 @@ socket.on('gameData', (data) => {
   readySection.style.display = 'block';
 });
 
-// Obsługa kliknięcia "Przejdź dalej" – przejście natychmiast
+// Obsługa kliknięcia "Przejdź dalej"
 readyBtn.addEventListener('click', () => {
+  readyBtn.disabled = true;
+  // Powiadamiamy serwer, żeby wszyscy gracze przeszli dalej
+  socket.emit('nextStep', { lobbyId });
+});
+
+// Odbiór sygnału od serwera – wszyscy przechodzą do order.html
+socket.on('goToOrder', () => {
   window.location.href = `/order.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
 });
 </script>
