@@ -44,12 +44,13 @@ socket.on('gameData', (data) => {
   readySection.style.display = 'block';
 });
 
-// Kliknięcie przycisku działa od razu dla wszystkich (jak start gry)
+// Kliknięcie przycisku działa natychmiast
 readyBtn.addEventListener('click', () => {
+  // Powiadom serwer, żeby wszyscy gracze przeszli do order.html
   socket.emit('proceedToOrder', { lobbyId });
 });
 
-// Serwer informuje wszystkich graczy, aby przejść do order.html
+// Odbiór eventu z serwera – wszyscy przechodzą do order.html
 socket.on('goToOrder', () => {
   window.location.href = `/order.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
 });

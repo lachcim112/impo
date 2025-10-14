@@ -129,11 +129,14 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Przycisk „Przejdź dalej” – każdy klik może przejść do order.html
+ // Każdy gracz może kliknąć "Przejdź dalej" i wszyscy idą do order.html
 socket.on('proceedToOrder', ({ lobbyId }) => {
   if (!lobbies[lobbyId]) return;
+
+  // Wyślij event do wszystkich graczy w tym lobby
   io.to(lobbyId).emit('goToOrder');
 });
+
 
 });
 
