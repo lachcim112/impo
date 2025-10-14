@@ -128,6 +128,13 @@ io.on('connection', (socket) => {
       }
     });
   });
+
+  // Przycisk „Przejdź dalej” – każdy klik może przejść do order.html
+socket.on('proceedToOrder', ({ lobbyId }) => {
+  if (!lobbies[lobbyId]) return;
+  io.to(lobbyId).emit('goToOrder');
+});
+
 });
 
 server.listen(PORT, '0.0.0.0', () => console.log(`Serwer działa na porcie ${PORT}`));
