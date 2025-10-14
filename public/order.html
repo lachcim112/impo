@@ -9,7 +9,7 @@
 <body>
 <h1>Kolejność graczy</h1>
 
-<div id="orderArea" style="text-align:center; margin-top:20px;"></div>
+<div id="orderArea" style="text-align:center; margin-top:20px;">Ładuję kolejność...</div>
 
 <div style="text-align:center; margin-top:20px;">
   <button id="endRoundBtn">Koniec rundy</button>
@@ -25,23 +25,45 @@ const orderArea = document.getElementById('orderArea');
 const endRoundBtn = document.getElementById('endRoundBtn');
 const socket = io();
 
-// 🔹 Poproś serwer o kolejność graczy
-socket.emit('getPlayerOrder', { lobbyId });
+socket.on('connect', () => {
+  console.log('[C] connected', socket.id);
+  // ensure server knows we're here
+  // optional: rejoin lobby (safe)
+  socket.emit('joinLobby', { lobbyId, name }, (res) => {
+    console.log('[C] joinLobby cb', res);
+  });
 
-// 🔹 Wyświetl listę po otrzymaniu
+  // immediately request order
+  console.log('[C] emit getPlayerOrder', lobbyId);
+  socket.emit('getPlayerOrder', { lobbyId });
+});
+
 socket.on('playerOrder', (order) => {
+  console.log('[C] playerOrder received', order);
+  if (!order || order.length === 0) {
+    orderArea.innerHTML = '<p>Brak graczy lub błąd serwera.</p>';
+    return;
+  }
   orderArea.innerHTML = '<ol>' + order.map(p => `<li>${p}</li>`).join('') + '</ol>';
 });
 
-// 🔹 Po kliknięciu przycisku - powiadom wszystkich
+// endRound: click -> emit and disable button; server will emit goToRoundEnd to all
 endRoundBtn.addEventListener('click', () => {
   endRoundBtn.disabled = true;
+  console.log('[C] emit endRound', lobbyId);
   socket.emit('endRound', { lobbyId });
 });
 
-// 🔹 Gdy którykolwiek gracz kliknie — przejście dla wszystkich
+// when server tells to go to roundend
 socket.on('goToRoundEnd', () => {
+  console.log('[C] goToRoundEnd received, redirecting');
   window.location.href = `/roundend.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
+});
+
+// debug connection error
+socket.on('connect_error', (err) => {
+  console.error('[C] connect_error', err);
+  orderArea.innerHTML = `<p>Błąd połączenia z serwerem: ${err.message}</p>`;
 });
 </script>
 </body>
