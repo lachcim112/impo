@@ -99,20 +99,24 @@ io.on('connection', (socket) => {
     console.log(`allReadyNext emitted to lobby ${lobbyId}`);
   });
 
-  // Losowanie kolejności graczy
-socket.on('getPlayerOrder', ({ lobbyId }) => {
-  const lobby = lobbies[lobbyId];
-  if (!lobby || !lobby.gameData) return;
+  // 🔹 Losowanie kolejności graczy
+  socket.on('getPlayerOrder', ({ lobbyId }) => {
+    const lobby = lobbies[lobbyId];
+    if (!lobby || !lobby.gameData) return;
 
-  // Jeśli już wcześniej wylosowano kolejność, użyj tej samej
-  if (!lobby.playerOrder) {
-    const shuffled = [...lobby.gameData.players]
-      .sort(() => Math.random() - 0.5);
-    lobby.playerOrder = shuffled;
-  }
+    if (!lobby.playerOrder) {
+      const shuffled = [...lobby.gameData.players].sort(() => Math.random() - 0.5);
+      lobby.playerOrder = shuffled;
+    }
 
-  io.to(lobbyId).emit('playerOrder', lobby.playerOrder);
-});
+    io.to(lobbyId).emit('playerOrder', lobby.playerOrder);
+  });
+
+  // 🔹 "Koniec rundy" — działa dla wszystkich
+  socket.on('endRound', ({ lobbyId }) => {
+    if (!lobbies[lobbyId]) return;
+    io.to(lobbyId).emit('goToRoundEnd');
+  });
 
 
   socket.on('disconnect', () => {

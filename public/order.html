@@ -23,17 +23,24 @@ const name = params.get('name');
 
 const orderArea = document.getElementById('orderArea');
 const endRoundBtn = document.getElementById('endRoundBtn');
-
 const socket = io();
 
-// Poproś serwer o kolejność graczy
+// 🔹 Poproś serwer o kolejność graczy
 socket.emit('getPlayerOrder', { lobbyId });
 
+// 🔹 Wyświetl listę po otrzymaniu
 socket.on('playerOrder', (order) => {
   orderArea.innerHTML = '<ol>' + order.map(p => `<li>${p}</li>`).join('') + '</ol>';
 });
 
+// 🔹 Po kliknięciu przycisku - powiadom wszystkich
 endRoundBtn.addEventListener('click', () => {
+  endRoundBtn.disabled = true;
+  socket.emit('endRound', { lobbyId });
+});
+
+// 🔹 Gdy którykolwiek gracz kliknie — przejście dla wszystkich
+socket.on('goToRoundEnd', () => {
   window.location.href = `/roundend.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
 });
 </script>
