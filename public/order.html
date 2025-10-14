@@ -7,14 +7,13 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<main>
-  <h1>Kolejność graczy</h1>
-  <div id="orderList"></div>
+<h1>Kolejność graczy</h1>
 
-  <div style="text-align:center; margin-top:30px;">
-    <button id="endRoundBtn">Koniec rundy</button>
-  </div>
-</main>
+<div id="orderArea"></div>
+
+<div style="text-align:center; margin-top:20px;">
+  <button id="endRoundBtn">Koniec rundy</button>
+</div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
@@ -22,21 +21,19 @@ const params = new URLSearchParams(location.search);
 const lobbyId = params.get('lobby');
 const name = params.get('name');
 
-const socket = io();
-const orderList = document.getElementById('orderList');
+const orderArea = document.getElementById('orderArea');
 const endRoundBtn = document.getElementById('endRoundBtn');
+
+const socket = io();
 
 // Poproś serwer o kolejność graczy
 socket.emit('getPlayerOrder', { lobbyId });
 
-// Odbierz i wyświetl kolejność
-socket.on('playerOrder', ({ order }) => {
-  orderList.innerHTML = '<ul>' + order.map((n, i) => 
-    `<li><strong>${i+1}.</strong> ${n}</li>`
-  ).join('') + '</ul>';
+socket.on('playerOrder', (order) => {
+  orderArea.innerHTML = '<ol>' + order.map(p => `<li>${p}</li>`).join('') + '</ol>';
 });
 
-// Po kliknięciu przejdź dalej
+// Kliknięcie końca rundy
 endRoundBtn.addEventListener('click', () => {
   window.location.href = `/roundend.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
 });
