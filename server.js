@@ -34,17 +34,19 @@ const categoriesData = [
   { name: "Meble", words: ["stół","krzesło","kanapa","fotel","łóżko","biurko","regał","szafa","komoda","pufa","toaletka","witryna","ławka","taboret","stolik nocny","rama łóżka","półka","szafka RTV","wieszak","narożnik"] }
 ];
 
-const lobbies = {}; // { lobbyId: { players: { socketId: name }, gameData } }
+const lobbies = {}; // { lobbyId: { players: { socketId: name }, gameData, actionVotes } }
 
 io.on('connection', (socket) => {
   console.log('Socket connected:', socket.id);
 
+  // Tworzenie lobby
   socket.on('createLobby', (cb) => {
     const id = uuidv4().slice(0,8);
     lobbies[id] = { players: {} };
     if (cb) cb({ lobbyId: id });
   });
 
+  // Dołączanie do lobby
   socket.on('joinLobby', ({ lobbyId, name }, cb) => {
     if (!lobbies[lobbyId]) return cb && cb({ error: 'Lobby nie istnieje' });
     lobbies[lobbyId].players[socket.id] = name;
@@ -56,6 +58,7 @@ io.on('connection', (socket) => {
     if (cb) cb({ ok:true });
   });
 
+  // Opuść lobby
   socket.on('leaveLobby', ({ lobbyId }, cb) => {
     if (lobbies[lobbyId] && lobbies[lobbyId].players[socket.id]) {
       delete lobbies[lobbyId].players[socket.id];
@@ -67,6 +70,7 @@ io.on('connection', (socket) => {
     if (cb) cb();
   });
 
+  // Start gry
   socket.on('startGame', ({ lobbyId, category }) => {
     const lobby = lobbies[lobbyId];
     if (!lobby) return;
@@ -90,6 +94,7 @@ io.on('connection', (socket) => {
     io.to(lobbyId).emit('gameStarted');
   });
 
+  // Dołączanie do gry i otrzymywanie indywidualnych danych
   socket.on('joinGame', ({ lobbyId, name }) => {
     const lobby = lobbies[lobbyId];
     if (!lobby || !lobby.gameData) return;
@@ -107,6 +112,14 @@ io.on('connection', (socket) => {
     });
   });
 
+  // Event „przejdź dalej” dla wszystkich graczy
+  socket.on('nextStep', ({ lobbyId }) => {
+    const lobby = lobbies[lobbyId];
+    if (!lobby) return;
+    io.to(lobbyId).emit('goToOrder');
+  });
+
+  // Obsługa disconnect
   socket.on('disconnect', () => {
     Object.keys(lobbies).forEach(lobbyId => {
       if (lobbies[lobbyId].players[socket.id]) {
@@ -115,124 +128,6 @@ io.on('connection', (socket) => {
       }
     });
   });
-
-  // Zliczanie graczy, którzy kliknęli "Przejdź dalej"
-  socket.on('readyNext', ({ lobbyId }) => {
-    const lobby = lobbies[lobbyId];
-    if (!lobby) return;
-    if (!lobby.gameData.readyPlayers) lobby.gameData.readyPlayers = {};
-    lobby.gameData.readyPlayers[socket.id] = true;
-    const total = Object.keys(lobby.players).length;
-    const readyCount = Object.keys(lobby.gameData.readyPlayers).length;
-    io.to(lobbyId).emit('readyProgress', { readyCount, total });
-
-    if (readyCount === total) {
-      lobby.gameData.readyPlayers = {};
-      io.to(lobbyId).emit('allReadyNext'); // <-- to wywołanie musi być
-    }
-});
-
-  // --- ETAP 2: Losowanie kolejności graczy ---
-socket.on('getPlayerOrder', ({ lobbyId }) => {
-  const lobby = lobbies[lobbyId];
-  if (!lobby || !lobby.gameData) return;
-
-  // Jeśli nie ma jeszcze kolejności – wylosuj
-  if (!lobby.gameData.order) {
-    const shuffled = [...lobby.gameData.players].sort(() => Math.random() - 0.5);
-    lobby.gameData.order = shuffled;
-  }
-
-  socket.emit('playerOrder', { order: lobby.gameData.order });
-});
-
-
-// Reset kolejności po zakończeniu rundy (np. przy kolejnej rundzie)
-//socket.on('resetOrder', ({ lobbyId }) => {
-  //const lobby = lobbies[lobbyId];
-  //if (lobby && lobby.gameData) {
-    //lobby.gameData.order = null;
-  //}
-//});
-
-// --- ETAP 3: Głosowanie decyzji po rundzie ---
-socket.on('roundEndVote', ({ lobbyId, choice }) => {
-  const lobby = lobbies[lobbyId];
-  if (!lobby || !lobby.gameData) return;
-
-  // Utwórz obiekt głosów jeśli nie istnieje
-  if (!lobby.gameData.roundVotes) lobby.gameData.roundVotes = {};
-
-  lobby.gameData.roundVotes[socket.id] = choice;
-
-  const totalPlayers = Object.keys(lobby.players).length;
-  const votes = Object.values(lobby.gameData.roundVotes);
-
-  const countRound = votes.filter(v => v === 'round').length;
-  const countVote = votes.filter(v => v === 'vote').length;
-
-  // Emituj do wszystkich aktualne wyniki
-  io.to(lobbyId).emit('roundVoteUpdate', { countRound, countVote, total: totalPlayers });
-
-  // Jeśli wszyscy zagłosowali
-  if (votes.length === totalPlayers) {
-    let result = 'round';
-    if (countVote > countRound) result = 'vote'; // Więcej za głosowaniem
-    // W przypadku remisu zostaje 'round'
-
-    io.to(lobbyId).emit('roundDecisionResult', { result });
-
-    // Wyczyść głosy na przyszłość
-    lobby.gameData.roundVotes = {};
-  }
-});
-
-// --- ETAP 4: Głosowanie impostora ---
-socket.on('voteImpostor', ({ lobbyId, target }) => {
-  const lobby = lobbies[lobbyId];
-  if (!lobby || !lobby.gameData) return;
-
-  if (!lobby.gameData.votes) lobby.gameData.votes = {};
-  lobby.gameData.votes[socket.id] = target;
-
-  const totalPlayers = Object.keys(lobby.players).length;
-  const votes = Object.values(lobby.gameData.votes);
-
-  // Emituj aktualny stan głosów
-  io.to(lobbyId).emit('voteProgress', { count: votes.length, total: totalPlayers });
-
-  if (votes.length === totalPlayers) {
-    // Zlicz wyniki głosowania
-    const counts = {};
-    for (const t of votes) counts[t] = (counts[t] || 0) + 1;
-
-    let winner = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
-
-    const impostorId = lobby.gameData.impostorId;
-    const impostorPlayer = lobby.players[impostorId];
-
-    const impostorName = impostorPlayer ? impostorPlayer.name : 'Nieznany';
-
-    let result = 'gracze'; // gracze wygrywają
-    if (winner !== impostorName) result = 'impostor'; // impostor nie został wybrany
-
-    // Zachowaj wynik
-    lobby.gameData.voteResult = { result, impostorName, votes: counts };
-
-    io.to(lobbyId).emit('voteResult', lobby.gameData.voteResult);
-
-    // Wyczyść głosy
-    lobby.gameData.votes = {};
-  }
-});
-
-socket.on('nextStep', ({ lobbyId }) => {
-  const lobby = lobbies[lobbyId];
-  if (!lobby) return;
-  // Wysyłamy do wszystkich w lobby sygnał do przejścia dalej
-  io.to(lobbyId).emit('goToOrder');
-});
-
 });
 
 server.listen(PORT, '0.0.0.0', () => console.log(`Serwer działa na porcie ${PORT}`));
