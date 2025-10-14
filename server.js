@@ -99,6 +99,20 @@ io.on('connection', (socket) => {
     console.log(`allReadyNext emitted to lobby ${lobbyId}`);
   });
 
+  // Losowanie kolejności graczy
+socket.on('getPlayerOrder', ({ lobbyId }) => {
+  const lobby = lobbies[lobbyId];
+  if (!lobby || !lobby.gameData) return;
+
+  // Jeśli już wcześniej wylosowano kolejność, użyj tej samej
+  if (!lobby.playerOrder) {
+    const shuffled = [...lobby.gameData.players]
+      .sort(() => Math.random() - 0.5);
+    lobby.playerOrder = shuffled;
+  }
+
+  io.to(lobbyId).emit('playerOrder', lobby.playerOrder);
+});
 
 
   socket.on('disconnect', () => {
