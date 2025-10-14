@@ -117,28 +117,20 @@ io.on('connection', (socket) => {
   });
 
   // Zliczanie graczy, którzy kliknęli "Przejdź dalej"
-  socket.on('playerReadyNext', ({ lobbyId }) => {
+  socket.on('readyNext', ({ lobbyId }) => {
     const lobby = lobbies[lobbyId];
-    if (!lobby || !lobby.gameData) return;
-
-    // Jeśli nie ma tablicy kliknięć – utwórz ją
-    if (!lobby.gameData.readyPlayers) lobby.gameData.readyPlayers = new Set();
-
-    lobby.gameData.readyPlayers.add(socket.id);
-
+    if (!lobby) return;
+    if (!lobby.gameData.readyPlayers) lobby.gameData.readyPlayers = {};
+    lobby.gameData.readyPlayers[socket.id] = true;
     const total = Object.keys(lobby.players).length;
-    const ready = lobby.gameData.readyPlayers.size;
+    const readyCount = Object.keys(lobby.gameData.readyPlayers).length;
+    io.to(lobbyId).emit('readyProgress', { readyCount, total });
 
-    // Wysyłamy info do wszystkich, ilu graczy jest gotowych
-    io.to(lobbyId).emit('readyCount', { ready, total });
-
-    // Jeśli wszyscy kliknęli — przechodzimy dalej
-    if (ready === total) {
-      io.to(lobbyId).emit('allPlayersReady');
-      // Reset na przyszłość
-      lobby.gameData.readyPlayers.clear();
+    if (readyCount === total) {
+      lobby.gameData.readyPlayers = {};
+      io.to(lobbyId).emit('allReadyNext'); // <-- to wywołanie musi być
     }
-  });
+});
 
   // --- ETAP 2: Losowanie kolejności graczy ---
 socket.on('getPlayerOrder', ({ lobbyId }) => {
@@ -154,13 +146,14 @@ socket.on('getPlayerOrder', ({ lobbyId }) => {
   socket.emit('playerOrder', { order: lobby.gameData.order });
 });
 
+
 // Reset kolejności po zakończeniu rundy (np. przy kolejnej rundzie)
-socket.on('resetOrder', ({ lobbyId }) => {
-  const lobby = lobbies[lobbyId];
-  if (lobby && lobby.gameData) {
-    lobby.gameData.order = null;
-  }
-});
+//socket.on('resetOrder', ({ lobbyId }) => {
+  //const lobby = lobbies[lobbyId];
+  //if (lobby && lobby.gameData) {
+    //lobby.gameData.order = null;
+  //}
+//});
 
 // --- ETAP 3: Głosowanie decyzji po rundzie ---
 socket.on('roundEndVote', ({ lobbyId, choice }) => {

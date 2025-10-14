@@ -48,16 +48,16 @@ socket.on('gameData', (data) => {
 // Obsługa kliknięcia "Przejdź dalej"
 readyBtn.addEventListener('click', () => {
   readyBtn.disabled = true;
-  socket.emit('playerReadyNext', { lobbyId });
+  socket.emit('readyNext', { lobbyId }); // <- nazwa zgodna z serwerem
 });
 
 // Aktualizowanie licznika gotowych graczy
-socket.on('readyCount', ({ ready, total }) => {
-  readyInfo.textContent = `Gotowych: ${ready} / ${total}`;
+socket.on('readyProgress', ({ readyCount, total }) => { // <- nazwa zgodna z serwerem
+  readyInfo.textContent = `Gotowych: ${readyCount} / ${total}`;
 });
 
 // Gdy wszyscy kliknęli
-socket.on('allPlayersReady', () => {
+socket.on('allReadyNext', () => { // <- nazwa zgodna z serwerem
   window.location.href = `/order.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
 });
 </script>
