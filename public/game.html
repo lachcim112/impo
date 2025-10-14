@@ -10,6 +10,11 @@
 <h1>Impostor - Gra</h1>
 <div id="gameArea"></div>
 
+<div id="readySection" style="text-align:center; margin-top:30px; display:none;">
+  <button id="readyBtn">Przejdź dalej</button>
+  <p id="readyInfo"></p>
+</div>
+
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const params = new URLSearchParams(location.search);
