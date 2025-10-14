@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kolejność graczy</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <h1>Kolejność graczy</h1>
+  <div id="orderList"></div>
+
+  <div style="text-align:center; margin-top:30px;">
+    <button id="endRoundBtn">Koniec rundy</button>
+  </div>
+</main>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const lobbyId = params.get('lobby');
+const name = params.get('name');
+
+const socket = io();
+const orderList = document.getElementById('orderList');
+const endRoundBtn = document.getElementById('endRoundBtn');
+
+// Poproś serwer o kolejność graczy
+socket.emit('getPlayerOrder', { lobbyId });
+
+// Odbierz i wyświetl kolejność
+socket.on('playerOrder', ({ order }) => {
+  orderList.innerHTML = '<ul>' + order.map((n, i) => 
+    `<li><strong>${i+1}.</strong> ${n}</li>`
+  ).join('') + '</ul>';
+});
+
+// Po kliknięciu przejdź dalej
+endRoundBtn.addEventListener('click', () => {
+  window.location.href = `/roundend.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
+});
+</script>
+</body>
+</html>

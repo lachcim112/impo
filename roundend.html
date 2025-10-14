@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Koniec rundy</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <h1>Koniec rundy</h1>
+
+  <div style="text-align:center;">
+    <button id="roundBtn">Kolejna runda</button>
+    <p id="roundCount">0 osób</p>
+
+    <button id="voteBtn" style="background-color:#2196f3;">Głosowanie</button>
+    <p id="voteCount">0 osób</p>
+  </div>
+</main>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const lobbyId = params.get('lobby');
+const name = params.get('name');
+
+const socket = io();
+
+const roundBtn = document.getElementById('roundBtn');
+const voteBtn = document.getElementById('voteBtn');
+const roundCount = document.getElementById('roundCount');
+const voteCount = document.getElementById('voteCount');
+
+let hasVoted = false;
+
+function sendVote(choice) {
+  if (hasVoted) return;
+  hasVoted = true;
+  roundBtn.disabled = true;
+  voteBtn.disabled = true;
+  socket.emit('roundEndVote', { lobbyId, choice });
+}
+
+roundBtn.addEventListener('click', () => sendVote('round'));
+voteBtn.addEventListener('click', () => sendVote('vote'));
+
+socket.on('roundVoteUpdate', ({ countRound, countVote, total }) => {
+  roundCount.textContent = `${countRound} / ${total} osób`;
+  voteCount.textContent = `${countVote} / ${total} osób`;
+});
+
+socket.on('roundDecisionResult', ({ result }) => {
+  if (result === 'round') {
+    window.location.href = `/order.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
+  } else {
+    window.location.href = `/vote.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
+  }
+});
+</script>
+</body>
+</html>
