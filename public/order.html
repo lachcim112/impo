@@ -23,6 +23,7 @@ const name = params.get('name');
 
 const orderArea = document.getElementById('orderArea');
 const endRoundBtn = document.getElementById('endRoundBtn');
+const readyInfo = document.getElementById('readyInfo');
 
 const socket = io();
 
@@ -34,13 +35,17 @@ socket.on('playerOrder', (order) => {
   orderArea.innerHTML = '<ol>' + order.map(p => `<li>${p}</li>`).join('') + '</ol>';
 });
 
-// Każdy gracz może kliknąć "Koniec rundy" i wszyscy przejdą do roundend.html
+// Kliknięcie przycisku
 endRoundBtn.addEventListener('click', () => {
-  socket.emit('proceedToRoundEnd', { lobbyId });
+  console.log('Kliknięto Koniec rundy — emit readyNextOrder', { lobbyId });
+  socket.emit('readyNextOrder', { lobbyId });
+  endRoundBtn.disabled = true;
+  readyInfo.textContent = 'Wysłano... czekam na serwer';
 });
 
-// Event od serwera – przejdź do roundend.html
-socket.on('goToRoundEnd', () => {
+// Odbiór eventu od serwera — wszyscy przechodzą dalej
+socket.on('allReadyNextOrder', () => {
+  console.log('Otrzymano allReadyNextOrder — przechodzę do roundend.html');
   window.location.href = `/roundend.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
 });
 </script>
