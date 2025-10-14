@@ -8,11 +8,11 @@
 </head>
 <body>
 <h1>Impostor - Gra</h1>
+
 <div id="gameArea"></div>
 
 <div id="readySection" style="text-align:center; margin-top:30px; display:none;">
   <button id="readyBtn">Przejdź dalej</button>
-  <p id="readyInfo"></p>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -24,11 +24,10 @@ const name = params.get('name');
 const gameArea = document.getElementById('gameArea');
 const readySection = document.getElementById('readySection');
 const readyBtn = document.getElementById('readyBtn');
-const readyInfo = document.getElementById('readyInfo');
 
 const socket = io();
 
-// Dołącz do gry i odbierz dane
+// Dołącz do gry i odbierz dane indywidualne
 socket.emit('joinGame', { lobbyId, name });
 
 socket.on('gameData', (data) => {
@@ -45,19 +44,8 @@ socket.on('gameData', (data) => {
   readySection.style.display = 'block';
 });
 
-// Obsługa kliknięcia "Przejdź dalej"
+// Obsługa kliknięcia "Przejdź dalej" – przejście natychmiast
 readyBtn.addEventListener('click', () => {
-  readyBtn.disabled = true;
-  socket.emit('readyNext', { lobbyId }); // <- nazwa zgodna z serwerem
-});
-
-// Aktualizowanie licznika gotowych graczy
-socket.on('readyProgress', ({ readyCount, total }) => { // <- nazwa zgodna z serwerem
-  readyInfo.textContent = `Gotowych: ${readyCount} / ${total}`;
-});
-
-// Gdy wszyscy kliknęli
-socket.on('allReadyNext', () => { // <- nazwa zgodna z serwerem
   window.location.href = `/order.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
 });
 </script>
