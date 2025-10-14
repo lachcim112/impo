@@ -115,6 +115,123 @@ io.on('connection', (socket) => {
       }
     });
   });
+
+  // Zliczanie graczy, którzy kliknęli "Przejdź dalej"
+  socket.on('playerReadyNext', ({ lobbyId }) => {
+    const lobby = lobbies[lobbyId];
+    if (!lobby || !lobby.gameData) return;
+
+    // Jeśli nie ma tablicy kliknięć – utwórz ją
+    if (!lobby.gameData.readyPlayers) lobby.gameData.readyPlayers = new Set();
+
+    lobby.gameData.readyPlayers.add(socket.id);
+
+    const total = Object.keys(lobby.players).length;
+    const ready = lobby.gameData.readyPlayers.size;
+
+    // Wysyłamy info do wszystkich, ilu graczy jest gotowych
+    io.to(lobbyId).emit('readyCount', { ready, total });
+
+    // Jeśli wszyscy kliknęli — przechodzimy dalej
+    if (ready === total) {
+      io.to(lobbyId).emit('allPlayersReady');
+      // Reset na przyszłość
+      lobby.gameData.readyPlayers.clear();
+    }
+  });
+
+  // --- ETAP 2: Losowanie kolejności graczy ---
+socket.on('getPlayerOrder', ({ lobbyId }) => {
+  const lobby = lobbies[lobbyId];
+  if (!lobby || !lobby.gameData) return;
+
+  // Jeśli nie ma jeszcze kolejności – wylosuj
+  if (!lobby.gameData.order) {
+    const shuffled = [...lobby.gameData.players].sort(() => Math.random() - 0.5);
+    lobby.gameData.order = shuffled;
+  }
+
+  socket.emit('playerOrder', { order: lobby.gameData.order });
+});
+
+// Reset kolejności po zakończeniu rundy (np. przy kolejnej rundzie)
+socket.on('resetOrder', ({ lobbyId }) => {
+  const lobby = lobbies[lobbyId];
+  if (lobby && lobby.gameData) {
+    lobby.gameData.order = null;
+  }
+});
+
+// --- ETAP 3: Głosowanie decyzji po rundzie ---
+socket.on('roundEndVote', ({ lobbyId, choice }) => {
+  const lobby = lobbies[lobbyId];
+  if (!lobby || !lobby.gameData) return;
+
+  // Utwórz obiekt głosów jeśli nie istnieje
+  if (!lobby.gameData.roundVotes) lobby.gameData.roundVotes = {};
+
+  lobby.gameData.roundVotes[socket.id] = choice;
+
+  const totalPlayers = Object.keys(lobby.players).length;
+  const votes = Object.values(lobby.gameData.roundVotes);
+
+  const countRound = votes.filter(v => v === 'round').length;
+  const countVote = votes.filter(v => v === 'vote').length;
+
+  // Emituj do wszystkich aktualne wyniki
+  io.to(lobbyId).emit('roundVoteUpdate', { countRound, countVote, total: totalPlayers });
+
+  // Jeśli wszyscy zagłosowali
+  if (votes.length === totalPlayers) {
+    let result = 'round';
+    if (countVote > countRound) result = 'vote'; // Więcej za głosowaniem
+    // W przypadku remisu zostaje 'round'
+
+    io.to(lobbyId).emit('roundDecisionResult', { result });
+
+    // Wyczyść głosy na przyszłość
+    lobby.gameData.roundVotes = {};
+  }
+});
+
+// --- ETAP 4: Głosowanie impostora ---
+socket.on('voteImpostor', ({ lobbyId, target }) => {
+  const lobby = lobbies[lobbyId];
+  if (!lobby || !lobby.gameData) return;
+
+  if (!lobby.gameData.votes) lobby.gameData.votes = {};
+  lobby.gameData.votes[socket.id] = target;
+
+  const totalPlayers = Object.keys(lobby.players).length;
+  const votes = Object.values(lobby.gameData.votes);
+
+  // Emituj aktualny stan głosów
+  io.to(lobbyId).emit('voteProgress', { count: votes.length, total: totalPlayers });
+
+  if (votes.length === totalPlayers) {
+    // Zlicz wyniki głosowania
+    const counts = {};
+    for (const t of votes) counts[t] = (counts[t] || 0) + 1;
+
+    let winner = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+
+    const impostorId = lobby.gameData.impostorId;
+    const impostorPlayer = lobby.players[impostorId];
+
+    const impostorName = impostorPlayer ? impostorPlayer.name : 'Nieznany';
+
+    let result = 'gracze'; // gracze wygrywają
+    if (winner !== impostorName) result = 'impostor'; // impostor nie został wybrany
+
+    // Zachowaj wynik
+    lobby.gameData.voteResult = { result, impostorName, votes: counts };
+
+    io.to(lobbyId).emit('voteResult', lobby.gameData.voteResult);
+
+    // Wyczyść głosy
+    lobby.gameData.votes = {};
+  }
+});
 });
 
 server.listen(PORT, '0.0.0.0', () => console.log(`Serwer działa na porcie ${PORT}`));

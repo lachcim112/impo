@@ -84,8 +84,21 @@ li {
   background-color: #81c784 !important;
 }
 
-
 .buttons {
   display: flex;
   flex-direction: column;
+}
+
+.vote-option {
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.vote-option:hover {
+  background-color: #aed581;
+}
+
+button:disabled {
+  background-color: #9e9e9e !important;
+  cursor: not-allowed;
 }

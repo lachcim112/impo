@@ -22,21 +22,43 @@ const lobbyId = params.get('lobby');
 const name = params.get('name');
 
 const gameArea = document.getElementById('gameArea');
+const readySection = document.getElementById('readySection');
+const readyBtn = document.getElementById('readyBtn');
+const readyInfo = document.getElementById('readyInfo');
+
 const socket = io();
 
-// Dołącz do gry i odbierz indywidualne dane
+// Dołącz do gry i odbierz dane
 socket.emit('joinGame', { lobbyId, name });
 
 socket.on('gameData', (data) => {
   gameArea.innerHTML = `
     <h2>Twoja rola:</h2>
-    <p style="font-size:1.5em; ${data.isImpostor?'color:red;':''}">
+    <p style="font-size:1.5em; ${data.isImpostor ? 'color:red;' : ''}">
       ${data.isImpostor ? 'IMPOSTOR' : 'Gracz'}
     </p>
     <p><strong>Kategoria:</strong> ${data.categoryName}</p>
-    ${data.isImpostor ? '<p style="font-weight:bold; color:red;">Nie znasz hasła</p>' 
-                       : `<p><strong>Hasło:</strong> ${data.word}</p>`}
+    ${data.isImpostor 
+      ? '<p style="font-weight:bold; color:red;">Nie znasz hasła</p>' 
+      : `<p><strong>Hasło:</strong> ${data.word}</p>`}
   `;
+  readySection.style.display = 'block';
+});
+
+// Obsługa kliknięcia "Przejdź dalej"
+readyBtn.addEventListener('click', () => {
+  readyBtn.disabled = true;
+  socket.emit('playerReadyNext', { lobbyId });
+});
+
+// Aktualizowanie licznika gotowych graczy
+socket.on('readyCount', ({ ready, total }) => {
+  readyInfo.textContent = `Gotowych: ${ready} / ${total}`;
+});
+
+// Gdy wszyscy kliknęli
+socket.on('allPlayersReady', () => {
+  window.location.href = `/order.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
 });
 </script>
 </body>

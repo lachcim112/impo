@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Wyniki</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <h1>Wyniki rundy</h1>
+  <div id="resultBox" class="box"></div>
+  <div style="text-align:center; margin-top:20px;">
+    <button id="endGameBtn">Koniec gry</button>
+  </div>
+</main>
+
+<script>
+const params = new URLSearchParams(location.search);
+const result = params.get('result');
+const impostor = params.get('impostor');
+const lobbyId = params.get('lobby');
+const name = params.get('name');
+
+const resultBox = document.getElementById('resultBox');
+
+if (result === 'gracze') {
+  resultBox.innerHTML = `
+    <h2 style="color:green;">Gracze wygrali!</h2>
+    <p>Impostorem był: <strong>${impostor}</strong></p>
+  `;
+} else {
+  resultBox.innerHTML = `
+    <h2 style="color:red;">Impostor wygrał!</h2>
+    <p>Impostorem był: <strong>${impostor}</strong></p>
+  `;
+}
+
+document.getElementById('endGameBtn').addEventListener('click', () => {
+  window.location.href = `/lobby.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
+});
+</script>
+</body>
+</html>
