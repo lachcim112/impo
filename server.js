@@ -147,8 +147,7 @@ socket.on('readyNextOrder', ({ lobbyId }) => {
   const lobby = lobbies[lobbyId];
   if (!lobby) return;
 
-  // Wyślij event do wszystkich graczy w lobby
-  io.to(lobbyId).emit('allReadyNextOrder');
+  io.to(lobbyId).emit('allReadyNextOrder'); // wszyscy gracze
 });
 
   socket.on('disconnect', () => {

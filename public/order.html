@@ -13,11 +13,8 @@
   <!-- Blok z kolejnością graczy -->
   <div id="orderArea" style="margin-bottom: 30px;"></div>
 
-  <!-- Blok z przyciskiem i licznikiem -->
-  <div id="readySection" style="text-align: center; display: none;">
-    <button id="readyBtn">Koniec rundy</button>
+    <button id="readyBtn" disabled>Koniec rundy</button>
     <p id="readyInfo"></p>
-  </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -45,15 +42,15 @@ socket.on('playerOrder', (players) => {
 
 // Kliknięcie przycisku
 readyBtn.addEventListener('click', () => {
-  console.log('Kliknięto Przejdź dalej — emit readyNext', { lobbyId });
-  socket.emit('readyNextOrder', { lobbyId });
+  console.log('Kliknięto Koniec rundy — emit readyNextOrder', { lobbyId });
+  socket.emit('readyNextOrder', { lobbyId }); // wyślij event na serwer
   readyBtn.disabled = true;
   readyInfo.textContent = 'Wysłano... czekam na serwer';
 });
 
-// Odbiór eventu od serwera — wszyscy przechodzą dalej
+// Odbiór eventu od serwera — wszyscy przechodzą do roundend.html
 socket.on('allReadyNextOrder', () => {
-  console.log('Otrzymano allReadyNext — przechodzę do roundend.html');
+  console.log('Otrzymano allReadyNextOrder — przechodzę do roundend.html');
   window.location.href = `/roundend.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
 });
 </script>
