@@ -45,6 +45,7 @@ io.on('connection', (socket) => {
     const Word = "testowe hasło";
     const impostorIndex = Maty.floor(Maty.random()  * playersArr.length); 
 
+
     lobby.gameData = {
       players: playersArr.map((p) => p[1]),
       categoryName,
