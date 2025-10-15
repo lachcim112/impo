@@ -41,10 +41,6 @@ io.on('connection', (socket) => {
     const playersArr = Object.entries(lobby.players);
     if (playersArr.length < 3) return;
 
-    const categoryName = category || "Zwierzęta";
-    const word = "Testowe hasło";
-    const impostorIndex = Math.floor(Math.random() * playersArr.length);
-
     lobby.gameData = {
       players: playersArr.map((p) => p[1]),
       categoryName,
@@ -55,7 +51,6 @@ io.on('connection', (socket) => {
     io.to(lobbyId).emit('gameStarted');
   });
 
-  // ... (wcześniejsze części server.js bez zmian)
 
   // Dołączanie do gry i otrzymywanie indywidualnych danych
   socket.on('joinGame', ({ lobbyId, name }) => {
