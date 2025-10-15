@@ -41,6 +41,10 @@ io.on('connection', (socket) => {
     const playersArr = Object.entries(lobby.players);
     if (playersArr.length < 3) return;
 
+    const categoryName = category || "Zwierzęta";
+    const Word = "testowe hasło";
+    const impostorIndex = Maty.floor(Maty.random()  * playersArr.length); 
+
     lobby.gameData = {
       players: playersArr.map((p) => p[1]),
       categoryName,
