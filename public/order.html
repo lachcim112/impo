@@ -9,11 +9,15 @@
 <body>
 <h1>Kolejność graczy</h1>
 
-<div id="orderArea" style="text-align:center; margin-top:20px;"></div>
+<div style="display: flex; flex-direction: column; align-items: center; margin-top: 20px;">
+  <!-- Blok z kolejnością graczy -->
+  <div id="orderArea" style="margin-bottom: 30px;"></div>
 
-<div id="readySection" style="text-align:center; margin-top:30px;">
-  <button id="endRoundBtn">Koniec rundy</button>
-  <p id="readyInfo"></p>
+  <!-- Blok z przyciskiem i licznikiem -->
+  <div id="readySection" style="text-align: center;">
+    <button id="endRoundBtn">Koniec rundy</button>
+    <p id="readyInfo"></p>
+  </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
