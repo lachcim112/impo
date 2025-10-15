@@ -43,14 +43,16 @@ socket.on('playerOrder', (players) => {
   endRoundBtn.disabled = false;
 });
 
-// Kliknięcie przycisku
+// Kliknięcie przycisku — wysyłamy event do serwera
 endRoundBtn.addEventListener('click', () => {
-  socket.emit('proceedToRoundEnd', { lobbyId }); // <- event do serwera
+  console.log('Kliknięto Koniec rundy — emit proceedToRoundEnd');
+  socket.emit('proceedToRoundEnd', { lobbyId });
   endRoundBtn.disabled = true;
 });
 
 // Odbiór eventu od serwera — wszyscy przechodzą do roundend.html
 socket.on('goToRoundEnd', () => {
+  console.log('Otrzymano goToRoundEnd — przechodzę do roundend.html');
   window.location.href = `/roundend.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
 });
 </script>
