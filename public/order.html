@@ -30,19 +30,14 @@ const readyInfo = document.getElementById('readyInfo');
 const socket = io();
 
 // Poproś serwer o kolejność graczy
-socket.emit('joinGame', { lobbyId, name });
+socket.emit('getPlayerOrder', { lobbyId });
 
-socket.on('gameData', (data) => {
-  // Losowa kolejność graczy
-  const players = data.players.slice();
-  for (let i = players.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [players[i], players[j]] = [players[j], players[i]];
-  }
-
+// Odbiór kolejności od serwera
+socket.on('playerOrder', (players) => {
   orderArea.innerHTML = '<ol>' + players.map(p => `<li>${p}</li>`).join('') + '</ol>';
   readySection.style.display = 'block';
 });
+
 
 // Kliknięcie przycisku
 endRoundBtn.addEventListener('click', () => {

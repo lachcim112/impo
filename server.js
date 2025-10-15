@@ -123,12 +123,12 @@ io.on('connection', (socket) => {
     console.log(`allReadyNext emitted to lobby ${lobbyId}`);
   });
 
- // Event do pobrania kolejności graczy
+ // Każdy gracz prosi o kolejność graczy
 socket.on('getPlayerOrder', ({ lobbyId }) => {
   const lobby = lobbies[lobbyId];
   if (!lobby || !lobby.gameData) return;
 
-  // Jeśli kolejność już nie została wylosowana, losujemy
+  // Jeśli kolejność jeszcze nie została wylosowana, losujemy raz
   if (!lobby.gameData.playerOrder) {
     const players = [...lobby.gameData.players];
     for (let i = players.length - 1; i > 0; i--) {
@@ -138,8 +138,8 @@ socket.on('getPlayerOrder', ({ lobbyId }) => {
     lobby.gameData.playerOrder = players;
   }
 
-  // Wyślij kolejność do wszystkich w lobby
-  io.to(lobbyId).emit('playerOrder', lobby.gameData.playerOrder);
+  // Wyślij kolejność tylko do osoby, która pyta
+  socket.emit('playerOrder', lobby.gameData.playerOrder);
 });
 
 // Każdy gracz kliknął "Koniec rundy" — wszyscy przechodzą do roundend.html
