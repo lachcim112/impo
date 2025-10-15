@@ -157,7 +157,7 @@ socket.on('readyNextOrder', ({ lobbyId }) => {
         io.to(lobbyId).emit(
           'players',
           Object.values(lobbies[lobbyId].players).map((n) => ({ name: n }))
-        );
+        ); 
       }
     });
   });
