@@ -53,7 +53,7 @@ readyBtn.addEventListener('click', () => {
 
 // Odbiór eventu od serwera — wszyscy przechodzą dalej
 socket.on('allReadyNext', () => {
-  console.log('Otrzymano allReadyNext — przechodzę do order.html');
+  console.log('Otrzymano allReadyNext — przechodzę do roundend.html');
   window.location.href = `/roundend.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
 });
 </script>
