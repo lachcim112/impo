@@ -46,7 +46,7 @@ socket.on('playerOrder', (players) => {
 // Kliknięcie przycisku
 readyBtn.addEventListener('click', () => {
   console.log('Kliknięto Przejdź dalej — emit readyNext', { lobbyId });
-  socket.emit('readyNext', { lobbyId });
+  socket.emit('readyNextOrder', { lobbyId });
   readyBtn.disabled = true;
   readyInfo.textContent = 'Wysłano... czekam na serwer';
 });
