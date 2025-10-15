@@ -43,15 +43,14 @@ socket.on('playerOrder', (players) => {
   endRoundBtn.disabled = false;
 });
 
-// Kliknięcie przycisku — natychmiast przechodzimy wszyscy do roundend.html
+// Kliknięcie przycisku
 endRoundBtn.addEventListener('click', () => {
+  socket.emit('proceedToRoundEnd', { lobbyId }); // <- event do serwera
   endRoundBtn.disabled = true;
-  readyInfo.textContent = 'Wysłano... czekam na serwer';
-  socket.emit('readyNext', { lobbyId }); // <-- tak jak w game.html
 });
 
-// Serwer odsyła sygnał przejścia — wszyscy gracze idą na roundend.html
-socket.on('allReadyNext', () => {
+// Odbiór eventu od serwera — wszyscy przechodzą do roundend.html
+socket.on('goToRoundEnd', () => {
   window.location.href = `/roundend.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
 });
 </script>
