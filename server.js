@@ -142,6 +142,15 @@ socket.on('getPlayerOrder', ({ lobbyId }) => {
   socket.emit('playerOrder', lobby.gameData.playerOrder);
 });
 
+// Każdy gracz kliknął "Koniec rundy" — wszyscy przechodzą do roundend.html
+socket.on('readyNextOrder', ({ lobbyId }) => {
+  const lobby = lobbies[lobbyId];
+  if (!lobby) return;
+
+  // Wyślij event do wszystkich graczy w lobby
+  io.to(lobbyId).emit('allReadyNextOrder');
+});
+
   socket.on('disconnect', () => {
     Object.keys(lobbies).forEach((lobbyId) => {
       if (lobbies[lobbyId].players[socket.id]) {
