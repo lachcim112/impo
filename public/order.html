@@ -38,27 +38,31 @@ socket.emit('getPlayerOrder', { lobbyId });
 
 // Odbiór kolejności od serwera
 socket.on('playerOrder', (players) => {
-  // Pokazujemy kolejność w osobnym bloku pod nagłówkiem
   orderArea.innerHTML = '<ol style="margin-bottom:20px;">' + players.map(p => `<li>${p}</li>`).join('') + '</ol>';
-  
-  // Włączamy sekcję z przyciskiem dopiero po otrzymaniu kolejności
+
+  // Wyświetlamy sekcję z przyciskiem
   readySection.style.display = 'block';
-  endRoundBtn.disabled = false;
+  endRoundBtn.disabled = false; // przycisk aktywny
 });
 
-// Kliknięcie przycisku "Koniec rundy"
+// Kliknięcie przycisku
 endRoundBtn.addEventListener('click', () => {
-  console.log('Kliknięto Koniec rundy — emit readyNextOrder', { lobbyId });
-  socket.emit('readyNextOrder', { lobbyId });
+  socket.emit('proceedToRoundEnd', { lobbyId }); // <- wysyłamy event do serwera
   endRoundBtn.disabled = true;
   readyInfo.textContent = 'Wysłano... czekam na serwer';
 });
 
-// Odbiór eventu od serwera — wszyscy przechodzą do roundend.html
-socket.on('allReadyNextOrder', () => {
-  console.log('Otrzymano allReadyNextOrder — przechodzę do roundend.html');
+// Każdy gracz kliknął przycisk – wszyscy idą do roundend.html
+socket.on('proceedToRoundEnd', ({ lobbyId }) => {
+  if (!lobbies[lobbyId]) return;
+  io.to(lobbyId).emit('goToRoundEnd');
+});
+
+// Serwer odsyła wszystkim sygnał przejścia
+socket.on('goToRoundEnd', () => {
   window.location.href = `/roundend.html?lobby=${lobbyId}&name=${encodeURIComponent(name)}`;
 });
+
 </script>
 </body>
 </html>
