@@ -147,7 +147,7 @@ socket.on('proceedToRoundEnd', ({ lobbyId }) => {
   const lobby = lobbies[lobbyId];
   if (!lobby) return;
   io.to(lobbyId).emit('goToRoundEnd');
-});
+}); 
 
   socket.on('disconnect', () => {
     Object.keys(lobbies).forEach((lobbyId) => {
