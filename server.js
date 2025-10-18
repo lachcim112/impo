@@ -92,8 +92,11 @@ io.on('connection', (socket) => {
     // Upewnij się, że socket jest w pokoju lobby (na wypadek odświeżenia strony)
     socket.join(lobbyId);
 
-    // Tworzymy strukturę do liczenia głosów w rundzie
-    if (!lobby.players) lobby.players = {};
+    for (const id in lobby.players) {
+    if (lobby.players[id] === name && id !== socket.id) {
+      delete lobby.players[id];
+    }
+  }
 
     // Dodajemy gracza po socket.id
     lobby.players[socket.id] = name;
