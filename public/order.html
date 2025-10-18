@@ -41,6 +41,17 @@ socket.on('playerOrder', (players) => {
   readyBtn.disabled = false;
 });
 
+// debug: połączenie socket
+socket.on('connect', () => {
+  console.log('Socket connected, id =', socket.id);
+  // wyślij joinGame żeby serwer dołączył socket do pokoju jeśli trzeba
+  socket.emit('joinGame', { lobbyId, name });
+});
+
+socket.on('connect_error', (err) => {
+  console.error('connect_error', err);
+});
+
 // Kliknięcie przycisku
 readyBtn.addEventListener('click', () => {
   console.log('Kliknięto Koniec rundy — emit readyNextOrder', { lobbyId });
