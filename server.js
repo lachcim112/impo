@@ -151,49 +151,41 @@ socket.on('getPlayerOrder', ({ lobbyId }) => {
   });
 
   socket.on('roundEndVote', ({ lobbyId, choice }) => {
-  console.log(`roundEndVote od ${socket.id}: ${choice} w lobby ${lobbyId}`);
-
   const lobby = lobbies[lobbyId];
-  if (!lobby) {
-    console.log(`roundEndVote: lobby ${lobbyId} nie istnieje`);
-    return;
-  }
+  if (!lobby) return;
 
-  // Utwórz strukturę głosów, jeśli jeszcze nie istnieje
-  if (!lobby.votes) {
-    lobby.votes = { round: new Set(), vote: new Set() };
-  }
+  // Inicjalizacja głosów
+  if (!lobby.votes) lobby.votes = { round: new Set(), vote: new Set() };
 
-  // Usuń ewentualny wcześniejszy głos gracza
+  // Usuń poprzedni głos tego gracza
   lobby.votes.round.delete(socket.id);
   lobby.votes.vote.delete(socket.id);
 
   // Dodaj nowy głos
   lobby.votes[choice].add(socket.id);
 
-  // Policz głosy
+  // Policz aktualne głosy
   const countRound = lobby.votes.round.size;
   const countVote = lobby.votes.vote.size;
 
-  // Policz ilu graczy jest w lobby (bo players to obiekt)
+  // Faktyczna liczba graczy w lobby
   const total = Object.keys(lobby.players || {}).length;
 
-  // Wyślij aktualny stan głosowania do wszystkich
+  // Wyślij aktualny stan wszystkim
   io.to(lobbyId).emit('roundVoteUpdate', { countRound, countVote, total });
-  console.log(`roundVoteUpdate → round=${countRound}, vote=${countVote}, total=${total}`);
 
-  // Sprawdź, czy któryś wynik osiągnął większość
+  // Sprawdź, czy któraś opcja osiągnęła **większość**
   const majority = Math.floor(total / 2) + 1;
+
   if (countRound >= majority) {
     io.to(lobbyId).emit('roundDecisionResult', { result: 'round' });
-    console.log(`Wynik głosowania: round (>=${majority})`);
-    delete lobby.votes;
+    delete lobby.votes; // reset głosów
   } else if (countVote >= majority) {
     io.to(lobbyId).emit('roundDecisionResult', { result: 'vote' });
-    console.log(`Wynik głosowania: vote (>=${majority})`);
-    delete lobby.votes;
+    delete lobby.votes; // reset głosów
   }
 });
+
 
 
 
