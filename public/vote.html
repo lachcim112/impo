@@ -34,6 +34,12 @@ let hasVoted = false;
 // Pobierz listę graczy z serwera
 socket.emit('joinLobby', { lobbyId, name });
 
+// Połączenie socket
+socket.on('connect', () => {
+  console.log('Połączono z socket.io');
+  socket.emit('joinGame', { lobbyId, name });
+});
+
 socket.on('players', (players) => {
   playersList.innerHTML = '';
   players.forEach(p => {
