@@ -92,6 +92,12 @@ io.on('connection', (socket) => {
     // Upewnij się, że socket jest w pokoju lobby (na wypadek odświeżenia strony)
     socket.join(lobbyId);
 
+    // Tworzymy strukturę do liczenia głosów w rundzie
+    if (!lobby.players) lobby.players = {};
+
+    // Dodajemy gracza po socket.id
+    lobby.players[socket.id] = name;
+
     const playerIndex = lobby.gameData.players.findIndex(p => p === name);
     if (playerIndex === -1) {
       console.log(`joinGame: nie znaleziono gracza ${name} w lobby ${lobbyId}`);
@@ -164,7 +170,7 @@ socket.on('getPlayerOrder', ({ lobbyId }) => {
   // Dodaj nowy głos
   lobby.votes[choice].add(socket.id);
 
-  
+
   // Policz aktualne głosy
   const countRound = lobby.votes.round.size;
   const countVote = lobby.votes.vote.size;
