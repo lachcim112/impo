@@ -164,6 +164,7 @@ socket.on('getPlayerOrder', ({ lobbyId }) => {
   // Dodaj nowy głos
   lobby.votes[choice].add(socket.id);
 
+  
   // Policz aktualne głosy
   const countRound = lobby.votes.round.size;
   const countVote = lobby.votes.vote.size;
