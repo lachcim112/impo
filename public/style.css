@@ -102,3 +102,10 @@ button:disabled {
   background-color: #9e9e9e !important;
   cursor: not-allowed;
 }
+
+#game-sect {
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  margin-top: 20px;
+}
