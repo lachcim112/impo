@@ -32,6 +32,17 @@ const voteBtn = document.getElementById('voteBtn');
 const roundCount = document.getElementById('roundCount');
 const voteCount = document.getElementById('voteCount');
 
+// debug: połączenie socket
+socket.on('connect', () => {
+  console.log('Socket connected, id =', socket.id);
+  // wyślij joinGame żeby serwer dołączył socket do pokoju jeśli trzeba
+  socket.emit('joinGame', { lobbyId, name });
+});
+
+socket.on('connect_error', (err) => {
+  console.error('connect_error', err);
+});
+
 let hasVoted = false;
 
 function sendVote(choice) {
