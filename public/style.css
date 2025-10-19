@@ -1,7 +1,7 @@
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: rgb(85, 85, 85);
-  color: rgb(238, 229, 233);
+  background: #f0f2f5;
+  color: #333;
   margin: 0;
   padding: 0;
   display: flex;
@@ -11,11 +11,11 @@ body {
 }
 
 main {
-  background: rgb(124, 121, 122);
+  background: #fff;
   margin: 40px 0;
   padding: 30px;
   border-radius: 16px;
-  box-shadow: 0 8px 20px rgb(162, 157, 157);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
   width: 90%;
   max-width: 500px;
 }
