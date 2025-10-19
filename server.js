@@ -15,7 +15,7 @@ app.use(express.static('public'));
 
 const categoriesData = [ 
   { name: "Zwierzęta", words: ["lew","słoń","pingwin","kot","pies","żyrafa","tygrys","foka","wilk","lis","koń","lama","papuga","nietoperz","krokodyl","delfin","rekin","żółw","zebra","małpa","jeż","kret"] },
-  { name: "Miasta", words: ["Warszawa","Kraków","Gdańsk","Wrocław","Poznań","Łódź","Lublin","Szczecin","Bydgoszcz","Katowice"] }, 
+  { name: "Miasta", words: ["Warszawa","Kraków","Gdańsk","Wrocław","Poznań","Łódź","Bydgoszcz","lloret","Berlin","New york","Dubai","Wenecja","Paryż","Londyn","Bancock"] }, 
   { name: "Gry komputerowe", words: ["Minecraft","Fortnite","Counter-Strike","League of Legends","Valorant","The Sims","Among Us","GTA V","Call of Duty","Roblox","FIFA","Overwatch","PUBG","Tetris","Cyberpunk","Red Dead Redemption"] }, 
   { name: "Jedzenie", words: ["pizza","hamburger","makaron","sushi","zupa","pierogi","lody","sałatka","kanapka","ciasto","kotlet","gofry","naleśniki","tost","jajecznica","chleb","sernik","rosół","kebab","frytki"] }, 
   { name: "Filmy", words: ["Matrix","Titanic","Avatar","Gladiator","Shrek","Joker","Harry Potter","Toy Story","Gwiezdne Wojny","Władca Pierścieni","Batman","Król Lew","Rocky","Forrest Gump","Deadpool","Minionki"] }, 
@@ -32,7 +32,8 @@ const categoriesData = [
   { name: "Święta", words: ["Boże Narodzenie","Wielkanoc","Sylwester","Walentynki","Dzień Matki","Dzień Dziecka","Halloween","Nowy Rok","Dzień Kobiet","Andrzejki","Mikołajki","Święto Zmarłych","Trzech Króli","Dzień Ojca","Karnawał","Prima Aprilis","Zakończenie Roku"] }, 
   { name: "Marki", words: ["Nike","Adidas","Apple","Samsung","Toyota","BMW","Google","McDonald's","Coca-Cola","Pepsi","IKEA","Sony","Microsoft","Netflix","Lego","Puma","Nestle","Amazon","Zara","H&M"] }, 
   { name: "Zjawiska pogodowe", words: ["deszcz","śnieg","wiatr","burza","słońce","mróz","grad","mgła","upał","tęcza","zamieć","wichura","rosa","chmury","zachmurzenie","ciepło","zimno","huragan","piorun","tornado"] }, 
-  { name: "Meble", words: ["stół","krzesło","kanapa","fotel","łóżko","biurko","regał","szafa","komoda","pufa","toaletka","witryna","ławka","taboret","stolik nocny","rama łóżka","półka","szafka RTV","wieszak","narożnik"] } ];
+  { name: "Meble", words: ["stół","krzesło","kanapa","fotel","łóżko","biurko","regał","szafa","komoda","pufa","toaletka","witryna","ławka","taboret","stolik nocny","rama łóżka","półka","szafka RTV","wieszak","narożnik"] },
+  { name: "Ogólne", words: ["Teoria spiskowa","Sztuczna inteligencja","Efekt domina","Czarna dziura","Globalne ocieplenie","Poczucie humoru","Instynkt przetrwania","Czas wolny","Stres pourazowy","Pierwsze wrażenie","Media społecznościowe","Natura","Siła wyobraźni"] } ];
 
 const lobbies = {}; // { lobbyId: { players: { socketId: name }, gameData } }
 
