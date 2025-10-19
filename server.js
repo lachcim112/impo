@@ -196,56 +196,68 @@ socket.on('getPlayerOrder', ({ lobbyId }) => {
   }
 });
 
+
+
 socket.on('voteImpostor', ({ lobbyId, target }) => {
   const lobby = lobbies[lobbyId];
   if (!lobby) return;
 
-  // Utwórz strukturę głosów jeśli nie istnieje
-  if (!lobby.voteData) lobby.voteData = { votes: {}, count: 0 };
+  // Upewnij się, że struktura istnieje
+  if (!lobby.voteData) {
+    lobby.voteData = { votes: {} };
+  }
 
-  // Jeśli gracz już głosował — pomijamy
+  // Zabezpieczenie — jeśli gracz już głosował, pomiń
   if (lobby.voteData.votes[socket.id]) return;
 
   // Zapisz głos
   lobby.voteData.votes[socket.id] = target;
-  lobby.voteData.count++;
 
   const total = Object.keys(lobby.players || {}).length;
+  const count = Object.keys(lobby.voteData.votes).length;
 
-  // Zaktualizuj stan na żywo
-  io.to(lobbyId).emit('voteProgress', { count: lobby.voteData.count, total });
+  // Aktualizacja postępu
+  io.to(lobbyId).emit('voteProgress', { count, total });
 
-  // Jeśli wszyscy zagłosowali, policz wynik
-  if (lobby.voteData.count >= total) {
+  // Jeśli wszyscy zagłosowali — czas na wynik
+  if (count >= total && total > 0) {
     const voteCounts = {};
+
+    // Zlicz, ile głosów ma każdy gracz
     for (const voter in lobby.voteData.votes) {
-      const targetName = lobby.voteData.votes[voter];
-      voteCounts[targetName] = (voteCounts[targetName] || 0) + 1;
+      const votedFor = lobby.voteData.votes[voter];
+      voteCounts[votedFor] = (voteCounts[votedFor] || 0) + 1;
     }
 
     // Znajdź gracza z największą liczbą głosów
     let maxVotes = 0;
     let votedOut = null;
-    for (const [name, count] of Object.entries(voteCounts)) {
-      if (count > maxVotes) {
-        maxVotes = count;
-        votedOut = name;
+    for (const [playerName, votes] of Object.entries(voteCounts)) {
+      if (votes > maxVotes) {
+        maxVotes = votes;
+        votedOut = playerName;
       }
     }
 
+    // Ustal kto był impostorem
     const impostorName = lobby.gameData.players[lobby.gameData.impostorIndex];
+
+    // Jeśli wyrzucony to impostor → wygrana drużyny niewinnych
     const result = votedOut === impostorName ? 'impostorFound' : 'innocentOut';
 
-    console.log(`[VOTE] ${lobbyId}: wyrzucony ${votedOut}, wynik: ${result}`);
+    console.log(`[VOTE] Lobby ${lobbyId}: wyrzucony ${votedOut}, impostor=${impostorName}, wynik=${result}`);
 
-    // Powiadom wszystkich graczy
-    io.to(lobbyId).emit('voteResult', { result, impostorName });
+    // Wyślij wynik do wszystkich
+    io.to(lobbyId).emit('voteResult', {
+      result,
+      impostorName,
+      votedOut,
+    });
 
-    // Wyczyść dane głosowania
+    // Wyczyść głosy po rundzie
     delete lobby.voteData;
   }
 });
-
 
 
   socket.on('disconnect', () => {

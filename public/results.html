@@ -17,23 +17,26 @@
 
 <script>
 const params = new URLSearchParams(location.search);
-const result = params.get('result');
+const result = params.get('result'); // 'impostorFound' lub 'innocentOut'
 const impostor = params.get('impostor');
 const lobbyId = params.get('lobby');
 const name = params.get('name');
 
 const resultBox = document.getElementById('resultBox');
 
-if (result === 'gracze') {
+// Poprawione warunki
+if (result === 'impostorFound') {
   resultBox.innerHTML = `
     <h2 style="color:green;">Gracze wygrali!</h2>
     <p>Impostorem był: <strong>${impostor}</strong></p>
   `;
-} else {
+} else if (result === 'innocentOut') {
   resultBox.innerHTML = `
     <h2 style="color:red;">Impostor wygrał!</h2>
     <p>Impostorem był: <strong>${impostor}</strong></p>
   `;
+} else {
+  resultBox.innerHTML = `<p>Nieznany wynik gry.</p>`;
 }
 
 document.getElementById('endGameBtn').addEventListener('click', () => {
